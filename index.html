@@ -1070,7 +1070,7 @@
     padding: 32px 36px 28px;
     flex-shrink: 0;
     position: relative;
-    box-shadow: inset 0 0 0 3px #92784a;
+    box-shadow: inset 0 0 0 2px #c9b07a, inset 0 0 0 6px #1a1714;
     border-bottom: 2px solid #c9b07a;
   }
 
@@ -1691,9 +1691,9 @@ function renderProjects(projects) {
 function renderProjectCards(projects, paFilter) {
   const grid = document.getElementById('projects-grid');
   grid.innerHTML = '';
-  const filtered = paFilter
+  const filtered = (paFilter
     ? projects.filter(p => f(p,'Practice Area') === paFilter)
-    : projects;
+    : projects).slice().sort((a,b) => (f(a,'Practice Area')||'').localeCompare(f(b,'Practice Area')||'') || (f(a,'Project')||'').localeCompare(f(b,'Project')||''));
 
   filtered.forEach(proj => {
     const card = document.createElement('div');
@@ -2003,6 +2003,10 @@ function renderSkills(skills) {
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(s);
   });
+  // Sort each category alphabetically by skill name
+  Object.keys(grouped).forEach(cat => {
+    grouped[cat].sort((a,b) => (f(a,'Skill')||'').localeCompare(f(b,'Skill')||''));
+  });
 
   const grid = document.createElement('div');
   grid.className = 'skills-grid';
@@ -2075,7 +2079,8 @@ function renderTechnologies(techs) {
   }
 
   const grouped = {};
-  techs.forEach(t => {
+  const sortedTechInput = [...techs].sort((a,b) => (f(a,'Technology')||'').localeCompare(f(b,'Technology')||''));
+  sortedTechInput.forEach(t => {
     const originalCat = f(t,'Tech Category') || 'Other';
     const cat = remapTechCat(f(t,'Technology') || '', originalCat);
     if (!grouped[cat]) grouped[cat] = [];
@@ -2140,6 +2145,10 @@ function renderCollaborations(collabs) {
   collabs.forEach(c => {
     const pt = f(c, 'Partner Type') || 'Internal';
     if (groups[pt]) groups[pt].push(c);
+  });
+  // Sort each group alphabetically by Partner Team name
+  Object.keys(groups).forEach(g => {
+    groups[g].sort((a,b) => (f(a,'Partner Team')||'').localeCompare(f(b,'Partner Team')||''));
   });
 
   const allCards = [];
