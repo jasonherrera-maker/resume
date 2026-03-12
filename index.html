@@ -550,22 +550,16 @@
   .skill-category-block {
     background: white;
     border: 1px solid var(--rule);
-    overflow: hidden;
+    padding: 22px 24px 26px;
   }
 
   .skill-cat-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 20px;
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid transparent;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .skill-cat-header:hover { background: var(--gold-bg); }
-  .skill-category-block.open .skill-cat-header {
-    border-bottom-color: var(--rule);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
   }
 
   .skill-cat-dot {
@@ -579,25 +573,7 @@
     font-size: 1rem;
     font-weight: 600;
     color: var(--ink);
-    flex: 1;
   }
-
-  .skill-cat-toggle {
-    font-size: 0.7rem;
-    color: var(--ink-muted);
-    transition: transform 0.22s, color 0.15s;
-    line-height: 1;
-  }
-  .skill-category-block.open .skill-cat-toggle {
-    transform: rotate(180deg);
-    color: var(--gold);
-  }
-
-  .skill-cat-body {
-    display: none;
-    padding: 6px 20px 16px;
-  }
-  .skill-category-block.open .skill-cat-body { display: block; }
 
   .skill-item {
     padding: 8px 0;
@@ -1053,6 +1029,233 @@
   }
   .skill-item:hover .skill-item-arrow { color: var(--gold); }
 
+
+  /* ── EMPLOYER DRAWER ──────────────────────────────────── */
+  .emp-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28,25,23,0.45);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .emp-drawer-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .emp-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(760px, 100vw);
+    height: 100vh;
+    background: var(--paper);
+    z-index: 301;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.18);
+  }
+  .emp-drawer-overlay.open .emp-drawer {
+    transform: translateX(0);
+  }
+
+  .emp-drawer-header {
+    background: #1a1714;
+    color: white;
+    padding: 32px 36px 28px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .emp-drawer-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+    line-height: 1;
+  }
+  .emp-drawer-close:hover { color: white; background: rgba(255,255,255,0.1); }
+
+  .emp-drawer-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: white;
+    line-height: 1.1;
+  }
+
+  .emp-drawer-meta {
+    display: flex;
+    gap: 18px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .emp-drawer-dates {
+    font-size: 0.78rem;
+    color: var(--gold-lt);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .emp-drawer-industry {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.05em;
+  }
+
+  .emp-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 36px 48px;
+  }
+
+  /* Section heading style shared across all drawer sections */
+  .emp-section-heading {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .emp-drawer-section {
+    margin-bottom: 36px;
+  }
+
+  /* Positions in drawer — mirrors Experience tab expanded view */
+  .emp-pos-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .emp-pos-item:last-child { border-bottom: none; }
+  .emp-pos-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .emp-pos-focus {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  .emp-pos-team {
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  /* Projects in drawer — condensed cards */
+  .emp-proj-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .emp-proj-card {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .emp-proj-card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+  }
+  .emp-proj-pa {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .emp-proj-title {
+    font-size: 0.82rem;
+    color: var(--ink);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Three-column chip section at bottom */
+  .emp-chips-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .emp-chip-col-heading {
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .emp-chip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .emp-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: var(--cream);
+    color: var(--ink-soft);
+    border: 1px solid var(--rule);
+    cursor: default;
+    transition: background 0.15s;
+    align-self: flex-start;
+  }
+
+  /* Expand-page icon on employer cards */
+  .emp-page-btn {
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    color: var(--ink-muted);
+    font-size: 0.7rem;
+    padding: 3px 7px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    margin-left: 8px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+  }
+  .emp-page-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-bg);
+  }
+
+  @media (max-width: 600px) {
+    .emp-drawer { width: 100vw; }
+    .emp-drawer-header { padding: 24px 20px 20px; }
+    .emp-drawer-body { padding: 24px 20px 40px; }
+    .emp-chips-row { grid-template-columns: 1fr; gap: 20px; }
+  }
+
 </style>
 </head>
 <body>
@@ -1236,7 +1439,7 @@ function renderExperience(employers, positions) {
   const panel = document.getElementById('experience');
   panel.innerHTML = `
     <div class="experience-heading">
-      <h2>Employment History</h2>
+      <h2>Professional History</h2>
       <span class="experience-heading-hint">Click any employer to expand</span>
     </div>
   `;
@@ -1261,6 +1464,7 @@ function renderExperience(employers, positions) {
           ${industry ? `<div class="employer-industry">${industry}</div>` : ''}
         </div>
       </div>
+      <button class="emp-page-btn" title="Open full employer page">⊞</button>
       <div class="employer-toggle">▾</div>
     `;
     hdr.addEventListener('click', () => {
@@ -1395,7 +1599,7 @@ function openProjectModal(proj) {
       const emp = allEmployers.find(e => e.id === eid);
       if (!emp) return '';
       const name = f(emp,'Employer') || f(emp,'Name') || '';
-      return `<span class="project-type-badge" style="background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-lt)">${name}</span>`;
+      return `<button class="project-type-badge emp-modal-chip" data-emp-id="${eid}" style="background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-lt);cursor:pointer">${name}</button>`;
     }).join('');
   }
 
@@ -1481,6 +1685,18 @@ function openProjectModal(proj) {
     ${techChipsHtml}
   `;
 
+  // Wire employer chip clicks → employer drawer
+  content.querySelectorAll('.emp-modal-chip').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const emp = allEmployers.find(em => em.id === btn.dataset.empId);
+      if (emp) {
+        document.getElementById('modal-overlay').classList.remove('open');
+        setTimeout(() => openEmployerDrawer(emp), 180);
+      }
+    });
+  });
+
   // Wire skill chip clicks → skill drill-down
   content.querySelectorAll('.skill-chip-link').forEach(btn => {
     btn.addEventListener('click', e => {
@@ -1498,6 +1714,8 @@ let allSkills       = [];
 let allProjects     = [];
 let allEmployers    = [];
 let allTechnologies = [];
+let allPositions    = [];
+let allCollabs      = [];
 
 function catIndex(cat) {
   const map = {
@@ -1649,26 +1867,17 @@ function renderSkills(skills) {
     Object.keys(grouped).filter(c => !catOrder.includes(c))
   );
 
-  cats.forEach((cat, idx) => {
+  cats.forEach(cat => {
     const block = document.createElement('div');
-    // First category open by default, rest collapsed
-    block.className = 'skill-category-block' + (idx === 0 ? ' open' : '');
+    block.className = 'skill-category-block';
     const cc = catClass(cat);
 
-    // ── Toggle header ──
-    const hdr = document.createElement('div');
-    hdr.className = 'skill-cat-header';
-    hdr.innerHTML = `
-      <div class="skill-cat-dot dot-${cc}"></div>
-      <div class="skill-cat-name">${cat}</div>
-      <div class="skill-cat-toggle">▾</div>
+    block.innerHTML = `
+      <div class="skill-cat-header">
+        <div class="skill-cat-dot dot-${cc}"></div>
+        <div class="skill-cat-name">${cat}</div>
+      </div>
     `;
-    hdr.addEventListener('click', () => block.classList.toggle('open'));
-    block.appendChild(hdr);
-
-    // ── Collapsible body ──
-    const body = document.createElement('div');
-    body.className = 'skill-cat-body';
 
     grouped[cat].forEach(s => {
       const item = document.createElement('div');
@@ -1683,10 +1892,9 @@ function renderSkills(skills) {
       item.style.alignItems = 'flex-start';
       item.style.justifyContent = 'space-between';
       item.addEventListener('click', () => openSkillDrillDown(s));
-      body.appendChild(item);
+      block.appendChild(item);
     });
 
-    block.appendChild(body);
     grid.appendChild(block);
   });
 
@@ -1897,6 +2105,8 @@ async function loadAll() {
     allSkills       = skills;
     allEmployers    = employers;
     allTechnologies = technologies;
+    allPositions    = positions;
+    allCollabs      = collabs;
 
     renderHeader(headers);
     renderExperience(employers, positions);
@@ -1922,7 +2132,166 @@ async function loadAll() {
   }
 }
 
+
+// ── EMPLOYER DRAWER ──────────────────────────────────────
+function openEmployerDrawer(emp) {
+  const overlay  = document.getElementById('emp-drawer-overlay');
+  const nameEl   = document.getElementById('emp-drawer-name');
+  const metaEl   = document.getElementById('emp-drawer-meta');
+  const bodyEl   = document.getElementById('emp-drawer-body');
+
+  const empId    = emp.id;
+  const empName  = f(emp,'Employer');
+  const sd       = formatDate(f(emp,'Start Date'));
+  const ed       = formatDate(f(emp,'End Date'));
+  const industry = f(emp,'Industry');
+
+  // ── Header ──
+  nameEl.textContent = empName;
+  metaEl.innerHTML = `
+    <div class="emp-drawer-dates">${sd} – ${ed}</div>
+    ${industry ? `<div class="emp-drawer-industry">${industry}</div>` : ''}
+  `;
+
+  bodyEl.innerHTML = '';
+
+  // ── Positions ──
+  const posList = allPositions.filter(p => (p.fields.Employer || []).includes(empId));
+  if (posList.length) {
+    const sec = document.createElement('div');
+    sec.className = 'emp-drawer-section';
+    sec.innerHTML = `<div class="emp-section-heading">Positions</div>`;
+    posList.forEach(pos => {
+      const item = document.createElement('div');
+      item.className = 'emp-pos-item';
+      item.innerHTML = `
+        <div class="emp-pos-name">${f(pos,'Position')}</div>
+        ${f(pos,'Focus') ? `<div class="emp-pos-focus">${f(pos,'Focus')}</div>` : ''}
+        ${f(pos,'Team')  ? `<div class="emp-pos-team">${f(pos,'Team')}</div>` : ''}
+      `;
+      sec.appendChild(item);
+    });
+    bodyEl.appendChild(sec);
+  }
+
+  // ── Projects ──
+  const empProjects = allProjects.filter(p => {
+    const links = p.fields['Employers'] || p.fields['Employer'] || [];
+    return links.includes(empId);
+  });
+  if (empProjects.length) {
+    const sec = document.createElement('div');
+    sec.className = 'emp-drawer-section';
+    sec.innerHTML = `<div class="emp-section-heading">Projects (${empProjects.length})</div>`;
+    const grid = document.createElement('div');
+    grid.className = 'emp-proj-grid';
+    empProjects.forEach(proj => {
+      const card = document.createElement('div');
+      card.className = 'emp-proj-card';
+      card.innerHTML = `
+        <div class="emp-proj-pa">${f(proj,'Practice Area') || ''}</div>
+        <div class="emp-proj-title">${f(proj,'Project')}</div>
+      `;
+      card.addEventListener('click', () => {
+        closeEmployerDrawer();
+        setTimeout(() => openProjectModal(proj), 180);
+      });
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    bodyEl.appendChild(sec);
+  }
+
+  // ── Bottom three-column chips: Tech | Skills | Collabs ──
+  // Technologies linked to this employer's projects
+  const techIds = new Set();
+  empProjects.forEach(p => (p.fields['Technologies'] || []).forEach(id => techIds.add(id)));
+  const empTechs = allTechnologies.filter(t => techIds.has(t.id));
+
+  // Skills linked to this employer's projects
+  const skillIds = new Set();
+  empProjects.forEach(p => (p.fields['Skill Sets'] || []).forEach(id => skillIds.add(id)));
+  const empSkills = allSkills.filter(s => skillIds.has(s.id));
+
+  // Collabs linked to this employer (via Employer linked field, or Where field matching)
+  // Collabs use a lookup field (returns names, not IDs)
+  const empCollabs = allCollabs.filter(c => {
+    const lookupVals = c.fields['Employers'] || [];
+    // Lookup arrays can be nested — flatten and check for employer name match
+    const flat = Array.isArray(lookupVals) ? lookupVals.flat() : [lookupVals];
+    return flat.some(v => String(v).trim() === empName.trim());
+  });
+
+  if (empTechs.length || empSkills.length || empCollabs.length) {
+    const sec = document.createElement('div');
+    sec.className = 'emp-drawer-section';
+    sec.innerHTML = `<div class="emp-section-heading">At a Glance</div>`;
+
+    const row = document.createElement('div');
+    row.className = 'emp-chips-row';
+
+    function makeChipCol(label, items, labelFn) {
+      const col = document.createElement('div');
+      col.innerHTML = `<div class="emp-chip-col-heading">${label}</div>`;
+      const list = document.createElement('div');
+      list.className = 'emp-chip-list';
+      items.forEach(item => {
+        const chip = document.createElement('span');
+        chip.className = 'emp-chip';
+        chip.textContent = labelFn(item);
+        list.appendChild(chip);
+      });
+      if (!items.length) {
+        const empty = document.createElement('span');
+        empty.style.cssText = 'font-size:0.72rem;color:var(--ink-muted);font-style:italic';
+        empty.textContent = '—';
+        list.appendChild(empty);
+      }
+      col.appendChild(list);
+      return col;
+    }
+
+    row.appendChild(makeChipCol('Technologies', empTechs, t => f(t,'Technology') || f(t,'Tech (Name)') || ''));
+    row.appendChild(makeChipCol('Skills', empSkills, s => f(s,'Skill') || ''));
+    row.appendChild(makeChipCol('Collaborations', empCollabs, c => f(c,'Partner Team') || ''));
+
+    sec.appendChild(row);
+    bodyEl.appendChild(sec);
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEmployerDrawer() {
+  document.getElementById('emp-drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close on overlay click (outside drawer) or close button
+document.getElementById('emp-drawer-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('emp-drawer-overlay')) closeEmployerDrawer();
+});
+document.getElementById('emp-drawer-close').addEventListener('click', closeEmployerDrawer);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeEmployerDrawer();
+});
+
+
 loadAll();
 </script>
+
+<!-- ── EMPLOYER DRAWER ───────────────────────────────── -->
+<div class="emp-drawer-overlay" id="emp-drawer-overlay">
+  <div class="emp-drawer" id="emp-drawer">
+    <div class="emp-drawer-header" id="emp-drawer-header">
+      <button class="emp-drawer-close" id="emp-drawer-close" aria-label="Close">✕</button>
+      <div class="emp-drawer-name" id="emp-drawer-name"></div>
+      <div class="emp-drawer-meta" id="emp-drawer-meta"></div>
+    </div>
+    <div class="emp-drawer-body" id="emp-drawer-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
