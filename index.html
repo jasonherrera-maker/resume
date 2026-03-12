@@ -1265,8 +1265,8 @@
   .tech-drill-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(28,25,23,0.4);
-    z-index: 200;
+    background: transparent;
+    z-index: 400;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
@@ -1281,29 +1281,45 @@
   .tech-drill-panel {
     background: var(--paper);
     width: min(640px, 100vw);
-    max-height: 72vh;
+    max-height: 80vh;
     border-radius: 6px 6px 0 0;
     display: flex;
     flex-direction: column;
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.16);
+    box-shadow: 0 -8px 48px rgba(0,0,0,0.22);
   }
   .tech-drill-overlay.open .tech-drill-panel {
     transform: translateY(0);
   }
   .tech-drill-header {
-    padding: 22px 28px 18px;
+    padding: 24px 28px 18px;
     border-bottom: 1px solid var(--rule);
+    background: white;
     flex-shrink: 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
     position: relative;
   }
+  /* Back button — upper left */
+  .tech-drill-back {
+    position: absolute;
+    top: 18px;
+    left: 20px;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: color 0.15s;
+    display: none; /* shown only when stacked */
+  }
+  .tech-drill-back:hover { color: var(--ink); }
+  .tech-drill-back.visible { display: block; }
+  /* Close button — upper right */
   .tech-drill-close {
     position: absolute;
-    top: 16px;
+    top: 18px;
     right: 20px;
     background: none;
     border: none;
@@ -1317,9 +1333,17 @@
   .tech-drill-close:hover { color: var(--ink); }
   .tech-drill-name {
     font-family: 'Cormorant Garamond', serif;
-    font-size: 1.4rem;
+    font-size: 1.55rem;
     font-weight: 600;
     color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 4px;
+    /* indent when back button visible */
+    transition: padding-left 0.15s;
+  }
+  .tech-drill-back.visible ~ .tech-drill-title-block .tech-drill-name,
+  .tech-drill-header.has-back .tech-drill-name {
+    padding-left: 32px;
   }
   .tech-drill-cat {
     font-size: 0.68rem;
@@ -1328,9 +1352,10 @@
     color: var(--gold);
     margin-top: 3px;
   }
+  .tech-drill-header.has-back .tech-drill-cat { padding-left: 32px; }
   .tech-drill-body {
     overflow-y: auto;
-    padding: 20px 28px 32px;
+    padding: 24px 28px 40px;
     flex: 1;
   }
 
@@ -1450,9 +1475,10 @@
 <!-- ── TECH DRILL-DOWN ───────────────────────────────── -->
 <div class="tech-drill-overlay" id="tech-drill-overlay">
   <div class="tech-drill-panel">
-    <div class="tech-drill-header">
+    <div class="tech-drill-header" id="tech-drill-header">
+      <button class="tech-drill-back" id="tech-drill-back">‹ Back</button>
       <button class="tech-drill-close" id="tech-drill-close">✕</button>
-      <div>
+      <div class="tech-drill-title-block">
         <div class="tech-drill-name" id="tech-drill-name"></div>
         <div class="tech-drill-cat" id="tech-drill-cat"></div>
       </div>
@@ -1866,6 +1892,10 @@ let allEmployers    = [];
 let allTechnologies = [];
 let allPositions    = [];
 let allCollabs      = [];
+
+// ── Navigation stack — tracks what was open under tech drill-down ──
+// Values: 'modal' | 'drawer' | null
+let navStack = [];
 
 function catIndex(cat) {
   const map = {
@@ -2516,10 +2546,12 @@ document.addEventListener('keydown', e => {
 
 // ── TECH DRILL-DOWN ──────────────────────────────────────
 function openTechDrillDown(tech) {
-  const overlay = document.getElementById('tech-drill-overlay');
-  const nameEl  = document.getElementById('tech-drill-name');
-  const catEl   = document.getElementById('tech-drill-cat');
-  const bodyEl  = document.getElementById('tech-drill-body');
+  const overlay  = document.getElementById('tech-drill-overlay');
+  const nameEl   = document.getElementById('tech-drill-name');
+  const catEl    = document.getElementById('tech-drill-cat');
+  const bodyEl   = document.getElementById('tech-drill-body');
+  const backBtn  = document.getElementById('tech-drill-back');
+  const hdrEl    = document.getElementById('tech-drill-header');
 
   const techName = f(tech,'Technology') || f(tech,'Tech (Name)') || '';
   const techCat  = f(tech,'Tech Category') || '';
@@ -2527,6 +2559,23 @@ function openTechDrillDown(tech) {
   nameEl.textContent = techName;
   catEl.textContent  = techCat;
   bodyEl.innerHTML   = '';
+
+  // Detect what's currently open beneath us
+  const modalOpen  = document.getElementById('modal-overlay').classList.contains('open');
+  const drawerOpen = document.getElementById('emp-drawer-overlay').classList.contains('open');
+  const stacked    = modalOpen || drawerOpen;
+
+  // Track the stack so ✕ knows what to close
+  navStack = stacked ? (drawerOpen ? ['drawer'] : ['modal']) : [];
+
+  // Show/hide back button
+  if (stacked) {
+    backBtn.classList.add('visible');
+    hdrEl.classList.add('has-back');
+  } else {
+    backBtn.classList.remove('visible');
+    hdrEl.classList.remove('has-back');
+  }
 
   // ── Projects that use this tech ──
   const techProjects = allProjects.filter(p =>
@@ -2589,11 +2638,36 @@ function openTechDrillDown(tech) {
 
 function closeTechDrillDown() {
   document.getElementById('tech-drill-overlay').classList.remove('open');
+  navStack = [];
 }
 
-document.getElementById('tech-drill-close').addEventListener('click', closeTechDrillDown);
+function closeTechDrillDownAll() {
+  // ✕ — close tech panel AND everything beneath it
+  document.getElementById('tech-drill-overlay').classList.remove('open');
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('emp-drawer-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  navStack = [];
+}
+
+// ‹ Back — close only tech panel, leave whatever is behind it open
+document.getElementById('tech-drill-back').addEventListener('click', e => {
+  e.stopPropagation();
+  closeTechDrillDown();
+});
+
+// ✕ — close tech panel + everything behind it
+document.getElementById('tech-drill-close').addEventListener('click', closeTechDrillDownAll);
+
+// Clicking the overlay backdrop when NOT stacked closes just the panel
 document.getElementById('tech-drill-overlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeTechDrillDown();
+  if (e.target === e.currentTarget) {
+    if (navStack.length) {
+      closeTechDrillDown(); // stacked: back behavior on backdrop tap
+    } else {
+      closeTechDrillDownAll();
+    }
+  }
 });
 
 
