@@ -340,9 +340,33 @@
   .projects-filter {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
     margin-bottom: 28px;
+    justify-content: space-between;
   }
+  .projects-filter-left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .projects-filter-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .filter-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--rule);
+    margin: 0 4px;
+  }
+
+  /* project card highlight/dim */
+  .project-card { transition: opacity 0.25s, box-shadow 0.2s, border-left 0.2s; }
+  .project-card.dimmed { opacity: 0.22; }
+  .project-card.highlighted { border-left: 3px solid var(--gold) !important; background: var(--gold-bg) !important; }
 
   .filter-btn {
     padding: 6px 14px;
@@ -1261,25 +1285,48 @@ function renderProjects(projects) {
   const panel = document.getElementById('projects');
   panel.innerHTML = '';
 
-  // Collect unique Project Types
-  const types = [...new Set(projects.map(p => f(p,'Project Type')).filter(Boolean))].sort();
+  // Collect unique Practice Areas
+  const areas = [...new Set(projects.map(p => f(p,'Practice Area')).filter(Boolean))].sort();
 
   const filterRow = document.createElement('div');
   filterRow.className = 'projects-filter';
 
+  // ── Left group: Practice Area pills ──
+  const leftGroup = document.createElement('div');
+  leftGroup.className = 'projects-filter-left';
+
   const allBtn = document.createElement('button');
   allBtn.className = 'filter-btn active';
   allBtn.textContent = 'All';
-  allBtn.dataset.filter = '';
-  filterRow.appendChild(allBtn);
+  allBtn.dataset.pa = '';
+  leftGroup.appendChild(allBtn);
 
-  types.forEach(t => {
+  areas.forEach(a => {
     const btn = document.createElement('button');
     btn.className = 'filter-btn';
-    btn.textContent = t;
-    btn.dataset.filter = t;
-    filterRow.appendChild(btn);
+    btn.textContent = a;
+    btn.dataset.pa = a;
+    leftGroup.appendChild(btn);
   });
+  filterRow.appendChild(leftGroup);
+
+  // ── Right group: Setting (In-house / Law Firm) pills ──
+  const rightGroup = document.createElement('div');
+  rightGroup.className = 'projects-filter-right';
+
+  const sep = document.createElement('div');
+  sep.className = 'filter-sep';
+  rightGroup.appendChild(sep);
+
+  ['In-house', 'Law Firm'].forEach(env => {
+    const btn = document.createElement('button');
+    btn.className = 'env-pill';
+    btn.textContent = env;
+    btn.dataset.env = env;
+    rightGroup.appendChild(btn);
+  });
+  filterRow.appendChild(rightGroup);
+
   panel.appendChild(filterRow);
 
   const grid = document.createElement('div');
@@ -1287,27 +1334,62 @@ function renderProjects(projects) {
   grid.id = 'projects-grid';
   panel.appendChild(grid);
 
-  filterRow.addEventListener('click', e => {
-    if (!e.target.classList.contains('filter-btn')) return;
-    filterRow.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-    renderProjectCards(allProjects, e.target.dataset.filter);
+  let activePa  = '';
+  let activeEnv = '';
+
+  function applyFilters() {
+    const cards = grid.querySelectorAll('.project-card');
+    cards.forEach(card => {
+      card.classList.remove('highlighted', 'dimmed');
+      const paMatch  = !activePa  || card.dataset.pa  === activePa;
+      const envMatch = !activeEnv || card.dataset.env === activeEnv;
+      if (activePa || activeEnv) {
+        if (paMatch && envMatch) {
+          card.classList.add('highlighted');
+        } else {
+          card.classList.add('dimmed');
+        }
+      }
+    });
+  }
+
+  // PA pill clicks
+  leftGroup.addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    leftGroup.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activePa = btn.dataset.pa;
+    applyFilters();
   });
 
-  renderProjectCards(projects, '');
+  // Env pill clicks (toggle)
+  rightGroup.addEventListener('click', e => {
+    const btn = e.target.closest('.env-pill');
+    if (!btn) return;
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      activeEnv = '';
+    } else {
+      rightGroup.querySelectorAll('.env-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeEnv = btn.dataset.env;
+    }
+    applyFilters();
+  });
+
+  renderProjectCards(projects);
 }
 
-function renderProjectCards(projects, filter) {
+function renderProjectCards(projects) {
   const grid = document.getElementById('projects-grid');
   grid.innerHTML = '';
-  const filtered = filter ? projects.filter(p => f(p,'Project Type') === filter) : projects;
 
-  filtered.forEach(proj => {
+  projects.forEach(proj => {
     const card = document.createElement('div');
     card.className = 'project-card';
-
-    const pt = f(proj,'Project Type');
-    const cc = catClass(pt);
+    card.dataset.pa  = f(proj,'Practice Area') || '';
+    card.dataset.env = f(proj,'Setting') || '';
 
     const hdr = document.createElement('div');
     hdr.className = 'project-card-header';
@@ -1317,12 +1399,6 @@ function renderProjectCards(projects, filter) {
     pa.textContent = f(proj,'Practice Area') || '';
     hdr.appendChild(pa);
 
-    if (pt) {
-      const badge = document.createElement('span');
-      badge.className = `project-type-badge c-${cc}`;
-      badge.textContent = pt;
-      hdr.appendChild(badge);
-    }
     card.appendChild(hdr);
 
     const title = document.createElement('div');
@@ -1351,9 +1427,7 @@ function openProjectModal(proj) {
 
   const badges = `
     <div class="modal-badge-row">
-      ${pt ? `<span class="project-type-badge c-${cc}">${pt}</span>` : ''}
       ${f(proj,'Practice Area') ? `<span class="project-type-badge" style="background:var(--cream);color:var(--ink-soft)">${f(proj,'Practice Area')}</span>` : ''}
-      ${f(proj,'Setting') ? `<span class="project-type-badge" style="background:var(--cream);color:var(--ink-muted)">${f(proj,'Setting')}</span>` : ''}
     </div>
   `;
 
@@ -1362,6 +1436,20 @@ function openProjectModal(proj) {
     { label: 'Execution',        val: f(proj,'Execution Path') },
     { label: 'Outcome & Impact', val: f(proj,'Outcome / Impact') },
   ].filter(s => s.val);
+
+  // Skills — High Level (Project Type field)
+  const ptVal = f(proj,'Project Type');
+  let skillsHighLevelHtml = '';
+  if (ptVal) {
+    const cc2 = catClass(ptVal);
+    skillsHighLevelHtml = `
+      <div class="modal-section">
+        <div class="modal-section-label">Skills — High Level</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">
+          <span class="project-type-badge c-${cc2}">${ptVal}</span>
+        </div>
+      </div>`;
+  }
 
   // Skill chips — linked record IDs, look up from allSkills
   const skillLinks = (proj.fields['Skill Sets'] || []);
@@ -1382,7 +1470,7 @@ function openProjectModal(proj) {
     if (chips) {
       skillChipsHtml = `
         <div class="modal-section">
-          <div class="modal-section-label">Skills</div>
+          <div class="modal-section-label">Skills — Granular</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">${chips}</div>
         </div>`;
     }
@@ -1397,6 +1485,7 @@ function openProjectModal(proj) {
         <div class="modal-section-body">${s.val}</div>
       </div>
     `).join('')}
+    ${skillsHighLevelHtml}
     ${skillChipsHtml}
   `;
 
@@ -1586,7 +1675,6 @@ function renderSkills(skills) {
           <div class="skill-name">${f(s,'Skill')}</div>
           ${f(s,'Skill Summary') ? `<div class="skill-summary-text">${f(s,'Skill Summary')}</div>` : ''}
         </div>
-        <div class="skill-item-arrow">↗</div>
       `;
       item.style.display = 'flex';
       item.style.alignItems = 'flex-start';
@@ -1608,15 +1696,30 @@ function renderTechnologies(techs) {
 
   const catOrder = [
     'AI & Emerging Tech',
-    'Litigation & Matter Management',
+    'Litigation — Law Firm',
+    'Matter Management & Insights',
     'Legal Research & Compliance',
     'Data & Knowledge Management',
     'Productivity & Collaboration',
   ];
 
+  // Remap categories from Airtable values to display categories
+  function remapTechCat(techName, originalCat) {
+    const lawFirmTools = ['Concordance','TrialDirector','CaseMap','iPRO','LiveNote'];
+    if (originalCat === 'Litigation & Matter Management' || originalCat === 'Matter Management & Reporting') {
+      if (lawFirmTools.some(t => techName.includes(t))) return 'Litigation — Law Firm';
+      return 'Matter Management & Insights';
+    }
+    if (techName === 'Smartsheet') return 'Data & Knowledge Management';
+    if (techName === 'Asana') return 'Productivity & Collaboration';
+    if (originalCat === 'Legal Infrastructure') return 'Matter Management & Insights';
+    return originalCat;
+  }
+
   const grouped = {};
   techs.forEach(t => {
-    const cat = f(t,'Tech Category') || 'Other';
+    const originalCat = f(t,'Tech Category') || 'Other';
+    const cat = remapTechCat(f(t,'Technology') || '', originalCat);
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(t);
   });
