@@ -1330,6 +1330,37 @@
     flex: 1;
   }
 
+
+  /* Project Type groups inside employer drawer */
+  .emp-pt-group-hdr {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.15s;
+  }
+  .emp-pt-group-hdr:hover { background: var(--gold-bg); padding-left: 6px; }
+  .emp-pt-count {
+    font-size: 0.68rem;
+    color: var(--ink-muted);
+    margin-left: 2px;
+  }
+  .emp-pt-toggle {
+    font-size: 0.65rem;
+    color: var(--ink-muted);
+    margin-left: auto;
+    transition: transform 0.2s;
+  }
+  .emp-pt-group.open .emp-pt-toggle { transform: rotate(180deg); color: var(--gold); }
+  .emp-pt-group-body {
+    display: none;
+    padding-bottom: 4px;
+  }
+  .emp-pt-group.open .emp-pt-group-body { display: block; }
+
 </style>
 </head>
 <body>
@@ -1484,7 +1515,7 @@ function renderHeader(recs) {
   document.getElementById('hdr-last').textContent  = lastName;
 
   // Taglines from Airtable Title1/2/3
-  const t1 = f(r,'Title1'), t2 = f(r,'Title2'), t3 = f(r,'Title3');
+  const t1 = f(r,'Title1') || f(r,'Title 1'), t2 = f(r,'Title2') || f(r,'Title 2'), t3 = f(r,'Title3') || f(r,'Title 3');
   if (t1 || t2 || t3) {
     const tl = document.getElementById('hdr-taglines');
     tl.innerHTML = '';
@@ -1494,7 +1525,7 @@ function renderHeader(recs) {
       tl.appendChild(sp);
       if (i < arr.length-1) {
         const sep = document.createElement('span');
-        sep.className = 'tagline-sep'; sep.textContent = '·';
+        sep.className = 'tagline-sep'; sep.textContent = '|';
         tl.appendChild(sep);
       }
     });
@@ -1568,6 +1599,11 @@ function renderExperience(employers, positions) {
       <button class="emp-page-btn" title="Open full employer page">⊞</button>
       <div class="employer-toggle">▾</div>
     `;
+    // Wire page button separately with stopPropagation
+    hdr.querySelector('.emp-page-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      openEmployerDrawer(emp);
+    });
     hdr.addEventListener('click', () => {
       block.classList.toggle('open');
     });
@@ -2295,7 +2331,7 @@ function openEmployerDrawer(emp) {
     bodyEl.appendChild(sec);
   }
 
-  // ── Projects ──
+  // ── Projects — grouped by Project Type with toggles ──
   const empProjects = allProjects.filter(p => {
     const links = p.fields['Employers'] || p.fields['Employer'] || [];
     return links.includes(empId);
@@ -2304,44 +2340,95 @@ function openEmployerDrawer(emp) {
     const sec = document.createElement('div');
     sec.className = 'emp-drawer-section';
     sec.innerHTML = `<div class="emp-section-heading">Projects (${empProjects.length})</div>`;
-    const grid = document.createElement('div');
-    grid.className = 'emp-proj-grid';
+
+    // Group by Project Type
+    const ptGroups = {};
     empProjects.forEach(proj => {
-      const card = document.createElement('div');
-      card.className = 'emp-proj-card';
-      card.innerHTML = `
-        <div class="emp-proj-pa">${f(proj,'Practice Area') || ''}</div>
-        <div class="emp-proj-title">${f(proj,'Project')}</div>
-      `;
-      card.addEventListener('click', () => {
-        closeEmployerDrawer();
-        setTimeout(() => openProjectModal(proj), 180);
-      });
-      grid.appendChild(card);
+      const pt = f(proj,'Project Type') || 'Other';
+      if (!ptGroups[pt]) ptGroups[pt] = [];
+      ptGroups[pt].push(proj);
     });
-    sec.appendChild(grid);
+
+    Object.entries(ptGroups).forEach(([pt, projs], gIdx) => {
+      const group = document.createElement('div');
+      group.className = 'emp-pt-group' + (gIdx === 0 ? ' open' : '');
+      group.style.marginBottom = '8px';
+
+      const groupHdr = document.createElement('div');
+      groupHdr.className = 'emp-pt-group-hdr';
+      const cc = catClass(pt);
+      groupHdr.innerHTML = `
+        <span class="project-type-badge c-${cc}" style="font-size:0.68rem">${pt}</span>
+        <span class="emp-pt-count">${projs.length}</span>
+        <span class="emp-pt-toggle">▾</span>
+      `;
+      groupHdr.addEventListener('click', () => group.classList.toggle('open'));
+      group.appendChild(groupHdr);
+
+      const groupBody = document.createElement('div');
+      groupBody.className = 'emp-pt-group-body';
+      const grid = document.createElement('div');
+      grid.className = 'emp-proj-grid';
+      grid.style.paddingTop = '10px';
+      projs.forEach(proj => {
+        const card = document.createElement('div');
+        card.className = 'emp-proj-card';
+        card.innerHTML = `
+          <div class="emp-proj-pa">${f(proj,'Practice Area') || ''}</div>
+          <div class="emp-proj-title">${f(proj,'Project')}</div>
+        `;
+        card.addEventListener('click', () => {
+          closeEmployerDrawer();
+          setTimeout(() => openProjectModal(proj), 180);
+        });
+        grid.appendChild(card);
+      });
+      groupBody.appendChild(grid);
+      group.appendChild(groupBody);
+      sec.appendChild(group);
+    });
+
     bodyEl.appendChild(sec);
   }
 
   // ── Bottom three-column chips: Tech | Skills | Collabs ──
-  // Technologies linked to this employer's projects
-  const techIds = new Set();
-  empProjects.forEach(p => (p.fields['Technologies'] || []).forEach(id => techIds.add(id)));
-  const empTechs = allTechnologies.filter(t => techIds.has(t.id));
+  // Technologies: try direct lookup on employer record first, fallback to cross-ref via projects
+  let empTechs = [];
+  const directTechIds = emp.fields['Technologies'] || emp.fields['Tech'] || [];
+  if (directTechIds.length) {
+    empTechs = allTechnologies.filter(t => directTechIds.includes(t.id) || directTechIds.includes(f(t,'Technology')));
+  }
+  if (!empTechs.length) {
+    const techIds = new Set();
+    empProjects.forEach(p => (p.fields['Technologies'] || []).forEach(id => techIds.add(id)));
+    empTechs = allTechnologies.filter(t => techIds.has(t.id));
+  }
 
-  // Skills linked to this employer's projects
-  const skillIds = new Set();
-  empProjects.forEach(p => (p.fields['Skill Sets'] || []).forEach(id => skillIds.add(id)));
-  const empSkills = allSkills.filter(s => skillIds.has(s.id));
+  // Skills: try direct lookup on employer record first, fallback to cross-ref via projects
+  let empSkills = [];
+  const directSkillIds = emp.fields['Skills'] || emp.fields['Skill Sets'] || [];
+  if (directSkillIds.length) {
+    empSkills = allSkills.filter(s => directSkillIds.includes(s.id) || directSkillIds.includes(f(s,'Skill')));
+  }
+  if (!empSkills.length) {
+    const skillIds = new Set();
+    empProjects.forEach(p => (p.fields['Skill Sets'] || []).forEach(id => skillIds.add(id)));
+    empSkills = allSkills.filter(s => skillIds.has(s.id));
+  }
 
-  // Collabs linked to this employer (via Employer linked field, or Where field matching)
-  // Collabs use a lookup field (returns names, not IDs)
-  const empCollabs = allCollabs.filter(c => {
-    const lookupVals = c.fields['Employers'] || [];
-    // Lookup arrays can be nested — flatten and check for employer name match
-    const flat = Array.isArray(lookupVals) ? lookupVals.flat() : [lookupVals];
-    return flat.some(v => String(v).trim() === empName.trim());
-  });
+  // Collabs: try direct lookup on employer record, fallback to name match
+  let empCollabs = [];
+  const directCollabIds = emp.fields['Collaborations'] || emp.fields['Collabs'] || [];
+  if (directCollabIds.length) {
+    empCollabs = allCollabs.filter(c => directCollabIds.includes(c.id) || directCollabIds.includes(f(c,'Partner Team')));
+  }
+  if (!empCollabs.length) {
+    empCollabs = allCollabs.filter(c => {
+      const lookupVals = c.fields['Employers'] || [];
+      const flat = Array.isArray(lookupVals) ? lookupVals.flat() : [lookupVals];
+      return flat.some(v => String(v).trim() === empName.trim());
+    });
+  }
 
   if (empTechs.length || empSkills.length || empCollabs.length) {
     const sec = document.createElement('div');
