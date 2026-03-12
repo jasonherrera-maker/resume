@@ -909,8 +909,10 @@
   }
   .sdp-skill-summary {
     font-size: 0.8rem;
-    color: var(--ink-muted);
+    font-weight: 600;
+    color: var(--ink);
     line-height: 1.55;
+    margin-bottom: 4px;
   }
 
   .sdp-meta-row {
@@ -1799,7 +1801,7 @@ function openProjectModal(proj) {
       const tech = allTechnologies.find(t => t.id === tid);
       if (!tech) return '';
       const name = f(tech,'Technology') || f(tech,'Tech (Name)') || f(tech,'Name') || '';
-      return `<span class="project-type-badge" style="background:var(--cream);color:var(--ink-soft);border:1px solid var(--rule)">${name}</span>`;
+      return `<button class="project-type-badge modal-tech-chip" data-tech-id="${tid}" style="background:var(--cream);color:var(--ink-soft);border:1px solid var(--rule);cursor:pointer">${name}</button>`;
     }).join('');
     if (chips) {
       techChipsHtml = `
@@ -1823,6 +1825,15 @@ function openProjectModal(proj) {
     ${skillChipsHtml}
     ${techChipsHtml}
   `;
+
+  // Wire tech chip clicks → tech drill-down (slides up from bottom)
+  content.querySelectorAll('.modal-tech-chip').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const tech = allTechnologies.find(t => t.id === btn.dataset.techId);
+      if (tech) openTechDrillDown(tech);
+    });
+  });
 
   // Wire employer chip clicks → employer drawer
   content.querySelectorAll('.emp-modal-chip').forEach(btn => {
@@ -2449,15 +2460,17 @@ function openEmployerDrawer(emp) {
     const row = document.createElement('div');
     row.className = 'emp-chips-row';
 
-    function makeChipCol(label, items, labelFn) {
+    function makeChipCol(label, items, labelFn, onClickFn) {
       const col = document.createElement('div');
       col.innerHTML = `<div class="emp-chip-col-heading">${label}</div>`;
       const list = document.createElement('div');
       list.className = 'emp-chip-list';
       items.forEach(item => {
-        const chip = document.createElement('span');
+        const chip = document.createElement(onClickFn ? 'button' : 'span');
         chip.className = 'emp-chip';
+        if (onClickFn) chip.style.cssText = 'cursor:pointer';
         chip.textContent = labelFn(item);
+        if (onClickFn) chip.addEventListener('click', e => { e.stopPropagation(); onClickFn(item); });
         list.appendChild(chip);
       });
       if (!items.length) {
@@ -2473,7 +2486,7 @@ function openEmployerDrawer(emp) {
     const sortedTechs   = [...empTechs].sort((a,b) => (f(a,'Technology')||'').localeCompare(f(b,'Technology')||''));
     const sortedSkills  = [...empSkills].sort((a,b) => (f(a,'Skill')||'').localeCompare(f(b,'Skill')||''));
     const sortedCollabs = [...empCollabs].sort((a,b) => (f(a,'Partner Team')||'').localeCompare(f(b,'Partner Team')||''));
-    row.appendChild(makeChipCol('Technologies',  sortedTechs,   t => f(t,'Technology') || f(t,'Tech (Name)') || ''));
+    row.appendChild(makeChipCol('Technologies',  sortedTechs,   t => f(t,'Technology') || f(t,'Tech (Name)') || '', t => openTechDrillDown(t)));
     row.appendChild(makeChipCol('Skills',        sortedSkills,  s => f(s,'Skill') || ''));
     row.appendChild(makeChipCol('Collaborations',sortedCollabs, c => f(c,'Partner Team') || ''));
 
