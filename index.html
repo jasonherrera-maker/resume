@@ -550,16 +550,22 @@
   .skill-category-block {
     background: white;
     border: 1px solid var(--rule);
-    padding: 22px 24px 26px;
+    overflow: hidden;
   }
 
   .skill-cat-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--rule);
+    padding: 14px 20px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .skill-cat-header:hover { background: var(--gold-bg); }
+  .skill-category-block.open .skill-cat-header {
+    border-bottom-color: var(--rule);
   }
 
   .skill-cat-dot {
@@ -573,7 +579,25 @@
     font-size: 1rem;
     font-weight: 600;
     color: var(--ink);
+    flex: 1;
   }
+
+  .skill-cat-toggle {
+    font-size: 0.7rem;
+    color: var(--ink-muted);
+    transition: transform 0.22s, color 0.15s;
+    line-height: 1;
+  }
+  .skill-category-block.open .skill-cat-toggle {
+    transform: rotate(180deg);
+    color: var(--gold);
+  }
+
+  .skill-cat-body {
+    display: none;
+    padding: 6px 20px 16px;
+  }
+  .skill-category-block.open .skill-cat-body { display: block; }
 
   .skill-item {
     padding: 8px 0;
@@ -1285,48 +1309,25 @@ function renderProjects(projects) {
   const panel = document.getElementById('projects');
   panel.innerHTML = '';
 
-  // Collect unique Practice Areas
+  // Collect unique Practice Areas for filter pills
   const areas = [...new Set(projects.map(p => f(p,'Practice Area')).filter(Boolean))].sort();
 
   const filterRow = document.createElement('div');
   filterRow.className = 'projects-filter';
 
-  // ── Left group: Practice Area pills ──
-  const leftGroup = document.createElement('div');
-  leftGroup.className = 'projects-filter-left';
-
   const allBtn = document.createElement('button');
   allBtn.className = 'filter-btn active';
   allBtn.textContent = 'All';
-  allBtn.dataset.pa = '';
-  leftGroup.appendChild(allBtn);
+  allBtn.dataset.filter = '';
+  filterRow.appendChild(allBtn);
 
   areas.forEach(a => {
     const btn = document.createElement('button');
     btn.className = 'filter-btn';
     btn.textContent = a;
-    btn.dataset.pa = a;
-    leftGroup.appendChild(btn);
+    btn.dataset.filter = a;
+    filterRow.appendChild(btn);
   });
-  filterRow.appendChild(leftGroup);
-
-  // ── Right group: Setting (In-house / Law Firm) pills ──
-  const rightGroup = document.createElement('div');
-  rightGroup.className = 'projects-filter-right';
-
-  const sep = document.createElement('div');
-  sep.className = 'filter-sep';
-  rightGroup.appendChild(sep);
-
-  ['In-house', 'Law Firm'].forEach(env => {
-    const btn = document.createElement('button');
-    btn.className = 'env-pill';
-    btn.textContent = env;
-    btn.dataset.env = env;
-    rightGroup.appendChild(btn);
-  });
-  filterRow.appendChild(rightGroup);
-
   panel.appendChild(filterRow);
 
   const grid = document.createElement('div');
@@ -1334,62 +1335,26 @@ function renderProjects(projects) {
   grid.id = 'projects-grid';
   panel.appendChild(grid);
 
-  let activePa  = '';
-  let activeEnv = '';
-
-  function applyFilters() {
-    const cards = grid.querySelectorAll('.project-card');
-    cards.forEach(card => {
-      card.classList.remove('highlighted', 'dimmed');
-      const paMatch  = !activePa  || card.dataset.pa  === activePa;
-      const envMatch = !activeEnv || card.dataset.env === activeEnv;
-      if (activePa || activeEnv) {
-        if (paMatch && envMatch) {
-          card.classList.add('highlighted');
-        } else {
-          card.classList.add('dimmed');
-        }
-      }
-    });
-  }
-
-  // PA pill clicks
-  leftGroup.addEventListener('click', e => {
-    const btn = e.target.closest('.filter-btn');
-    if (!btn) return;
-    leftGroup.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activePa = btn.dataset.pa;
-    applyFilters();
+  filterRow.addEventListener('click', e => {
+    if (!e.target.classList.contains('filter-btn')) return;
+    filterRow.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    renderProjectCards(allProjects, e.target.dataset.filter);
   });
 
-  // Env pill clicks (toggle)
-  rightGroup.addEventListener('click', e => {
-    const btn = e.target.closest('.env-pill');
-    if (!btn) return;
-    if (btn.classList.contains('active')) {
-      btn.classList.remove('active');
-      activeEnv = '';
-    } else {
-      rightGroup.querySelectorAll('.env-pill').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      activeEnv = btn.dataset.env;
-    }
-    applyFilters();
-  });
-
-  renderProjectCards(projects);
+  renderProjectCards(projects, '');
 }
 
-function renderProjectCards(projects) {
+function renderProjectCards(projects, paFilter) {
   const grid = document.getElementById('projects-grid');
   grid.innerHTML = '';
+  const filtered = paFilter
+    ? projects.filter(p => f(p,'Practice Area') === paFilter)
+    : projects;
 
-  projects.forEach(proj => {
+  filtered.forEach(proj => {
     const card = document.createElement('div');
     card.className = 'project-card';
-    card.dataset.pa  = f(proj,'Practice Area') || '';
-    card.dataset.env = f(proj,'Setting') || '';
 
     const hdr = document.createElement('div');
     hdr.className = 'project-card-header';
@@ -1407,8 +1372,6 @@ function renderProjectCards(projects) {
     title.textContent = raw.length > 90 ? raw.slice(0,87)+'…' : raw;
     card.appendChild(title);
 
-    // Project Summary and Primary Skill intentionally omitted from card view
-
     const hint = document.createElement('div');
     hint.className = 'expand-hint';
     hint.textContent = '↗ View details';
@@ -1420,24 +1383,37 @@ function renderProjectCards(projects) {
 }
 
 function openProjectModal(proj) {
-  const pt = f(proj,'Project Type');
-  const cc = catClass(pt);
   const overlay = document.getElementById('modal-overlay');
   const content = document.getElementById('modal-content');
 
+  // ── Badge row: Practice Area + Employer chips ──
+  const paVal    = f(proj,'Practice Area');
+  const empLinks = proj.fields['Employers'] || proj.fields['Employer'] || [];
+  let empChipsHtml = '';
+  if (empLinks.length && allEmployers.length) {
+    empChipsHtml = empLinks.map(eid => {
+      const emp = allEmployers.find(e => e.id === eid);
+      if (!emp) return '';
+      const name = f(emp,'Employer') || f(emp,'Name') || '';
+      return `<span class="project-type-badge" style="background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-lt)">${name}</span>`;
+    }).join('');
+  }
+
   const badges = `
     <div class="modal-badge-row">
-      ${f(proj,'Practice Area') ? `<span class="project-type-badge" style="background:var(--cream);color:var(--ink-soft)">${f(proj,'Practice Area')}</span>` : ''}
+      ${paVal ? `<span class="project-type-badge" style="background:var(--cream);color:var(--ink-soft)">${paVal}</span>` : ''}
+      ${empChipsHtml}
     </div>
   `;
 
+  // ── Narrative sections ──
   const sections = [
     { label: 'Problem',          val: f(proj,'Problem Statement') },
     { label: 'Execution',        val: f(proj,'Execution Path') },
     { label: 'Outcome & Impact', val: f(proj,'Outcome / Impact') },
   ].filter(s => s.val);
 
-  // Skills — High Level (Project Type field)
+  // ── Skills — High Level (Project Type field) ──
   const ptVal = f(proj,'Project Type');
   let skillsHighLevelHtml = '';
   if (ptVal) {
@@ -1451,26 +1427,41 @@ function openProjectModal(proj) {
       </div>`;
   }
 
-  // Skill chips — linked record IDs, look up from allSkills
-  const skillLinks = (proj.fields['Skill Sets'] || []);
+  // ── Skills — Granular (linked Skill Sets) ──
+  const skillLinks = proj.fields['Skill Sets'] || [];
   let skillChipsHtml = '';
   if (skillLinks.length && allSkills.length) {
     const chips = skillLinks.map(sid => {
       const sk = allSkills.find(s => s.id === sid);
       if (!sk) return '';
-      const scat = f(sk,'Skill Type');
-      const scc  = catClass(scat);
-      const bgVar = `var(--cat${catIndex(scat)})`;
-      const fgVar = `var(--cat${catIndex(scat)}d)`;
-      return `<button class="skill-chip-link" data-skill-id="${sid}"
-        style="background:${bgVar};color:${fgVar}">
-        <span class="sc-dot" style="background:${fgVar}"></span>${f(sk,'Skill')}
-      </button>`;
+      const scat   = f(sk,'Skill Type');
+      const bgVar  = `var(--cat${catIndex(scat)})`;
+      const fgVar  = `var(--cat${catIndex(scat)}d)`;
+      return `<button class="skill-chip-link" data-skill-id="${sid}" style="background:${bgVar};color:${fgVar}"><span class="sc-dot" style="background:${fgVar}"></span>${f(sk,'Skill')}</button>`;
     }).join('');
     if (chips) {
       skillChipsHtml = `
         <div class="modal-section">
           <div class="modal-section-label">Skills — Granular</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">${chips}</div>
+        </div>`;
+    }
+  }
+
+  // ── Technologies (linked Technologies field) ──
+  const techLinks = proj.fields['Technologies'] || [];
+  let techChipsHtml = '';
+  if (techLinks.length && allTechnologies.length) {
+    const chips = techLinks.map(tid => {
+      const tech = allTechnologies.find(t => t.id === tid);
+      if (!tech) return '';
+      const name = f(tech,'Technology') || f(tech,'Tech (Name)') || f(tech,'Name') || '';
+      return `<span class="project-type-badge" style="background:var(--cream);color:var(--ink-soft);border:1px solid var(--rule)">${name}</span>`;
+    }).join('');
+    if (chips) {
+      techChipsHtml = `
+        <div class="modal-section">
+          <div class="modal-section-label">Technologies</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px">${chips}</div>
         </div>`;
     }
@@ -1487,9 +1478,10 @@ function openProjectModal(proj) {
     `).join('')}
     ${skillsHighLevelHtml}
     ${skillChipsHtml}
+    ${techChipsHtml}
   `;
 
-  // Wire skill chip clicks
+  // Wire skill chip clicks → skill drill-down
   content.querySelectorAll('.skill-chip-link').forEach(btn => {
     btn.addEventListener('click', e => {
       e.stopPropagation();
@@ -1502,8 +1494,10 @@ function openProjectModal(proj) {
 }
 
 // ── SKILL DRILL-DOWN ─────────────────────────────────────
-let allSkills   = [];
-let allProjects = [];
+let allSkills       = [];
+let allProjects     = [];
+let allEmployers    = [];
+let allTechnologies = [];
 
 function catIndex(cat) {
   const map = {
@@ -1655,17 +1649,26 @@ function renderSkills(skills) {
     Object.keys(grouped).filter(c => !catOrder.includes(c))
   );
 
-  cats.forEach(cat => {
+  cats.forEach((cat, idx) => {
     const block = document.createElement('div');
-    block.className = 'skill-category-block';
+    // First category open by default, rest collapsed
+    block.className = 'skill-category-block' + (idx === 0 ? ' open' : '');
     const cc = catClass(cat);
 
-    block.innerHTML = `
-      <div class="skill-cat-header">
-        <div class="skill-cat-dot dot-${cc}"></div>
-        <div class="skill-cat-name">${cat}</div>
-      </div>
+    // ── Toggle header ──
+    const hdr = document.createElement('div');
+    hdr.className = 'skill-cat-header';
+    hdr.innerHTML = `
+      <div class="skill-cat-dot dot-${cc}"></div>
+      <div class="skill-cat-name">${cat}</div>
+      <div class="skill-cat-toggle">▾</div>
     `;
+    hdr.addEventListener('click', () => block.classList.toggle('open'));
+    block.appendChild(hdr);
+
+    // ── Collapsible body ──
+    const body = document.createElement('div');
+    body.className = 'skill-cat-body';
 
     grouped[cat].forEach(s => {
       const item = document.createElement('div');
@@ -1680,9 +1683,10 @@ function renderSkills(skills) {
       item.style.alignItems = 'flex-start';
       item.style.justifyContent = 'space-between';
       item.addEventListener('click', () => openSkillDrillDown(s));
-      block.appendChild(item);
+      body.appendChild(item);
     });
 
+    block.appendChild(body);
     grid.appendChild(block);
   });
 
@@ -1889,8 +1893,10 @@ async function loadAll() {
     ]);
 
     // Store globals for drill-down cross-referencing
-    allProjects = projects;
-    allSkills   = skills;
+    allProjects     = projects;
+    allSkills       = skills;
+    allEmployers    = employers;
+    allTechnologies = technologies;
 
     renderHeader(headers);
     renderExperience(employers, positions);
