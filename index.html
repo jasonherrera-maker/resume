@@ -1070,6 +1070,8 @@
     padding: 32px 36px 28px;
     flex-shrink: 0;
     position: relative;
+    box-shadow: inset 0 0 0 3px #92784a;
+    border-bottom: 2px solid #c9b07a;
   }
 
   .emp-drawer-close {
@@ -2459,9 +2461,12 @@ function openEmployerDrawer(emp) {
       return col;
     }
 
-    row.appendChild(makeChipCol('Technologies', empTechs, t => f(t,'Technology') || f(t,'Tech (Name)') || ''));
-    row.appendChild(makeChipCol('Skills', empSkills, s => f(s,'Skill') || ''));
-    row.appendChild(makeChipCol('Collaborations', empCollabs, c => f(c,'Partner Team') || ''));
+    const sortedTechs   = [...empTechs].sort((a,b) => (f(a,'Technology')||'').localeCompare(f(b,'Technology')||''));
+    const sortedSkills  = [...empSkills].sort((a,b) => (f(a,'Skill')||'').localeCompare(f(b,'Skill')||''));
+    const sortedCollabs = [...empCollabs].sort((a,b) => (f(a,'Partner Team')||'').localeCompare(f(b,'Partner Team')||''));
+    row.appendChild(makeChipCol('Technologies',  sortedTechs,   t => f(t,'Technology') || f(t,'Tech (Name)') || ''));
+    row.appendChild(makeChipCol('Skills',        sortedSkills,  s => f(s,'Skill') || ''));
+    row.appendChild(makeChipCol('Collaborations',sortedCollabs, c => f(c,'Partner Team') || ''));
 
     sec.appendChild(row);
     bodyEl.appendChild(sec);
