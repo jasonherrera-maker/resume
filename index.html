@@ -1399,6 +1399,33 @@
   </div>
 </div>
 
+<!-- ── EMPLOYER DRAWER ───────────────────────────────── -->
+<div class="emp-drawer-overlay" id="emp-drawer-overlay">
+  <div class="emp-drawer" id="emp-drawer">
+    <div class="emp-drawer-header" id="emp-drawer-header">
+      <button class="emp-drawer-close" id="emp-drawer-close" aria-label="Close">✕</button>
+      <div class="emp-drawer-name" id="emp-drawer-name"></div>
+      <div class="emp-drawer-meta" id="emp-drawer-meta"></div>
+    </div>
+    <div class="emp-drawer-body" id="emp-drawer-body"></div>
+  </div>
+</div>
+
+
+<!-- ── TECH DRILL-DOWN ───────────────────────────────── -->
+<div class="tech-drill-overlay" id="tech-drill-overlay">
+  <div class="tech-drill-panel">
+    <div class="tech-drill-header">
+      <button class="tech-drill-close" id="tech-drill-close">✕</button>
+      <div>
+        <div class="tech-drill-name" id="tech-drill-name"></div>
+        <div class="tech-drill-cat" id="tech-drill-cat"></div>
+      </div>
+    </div>
+    <div class="tech-drill-body" id="tech-drill-body"></div>
+  </div>
+</div>
+
 <script>
 // ── HELPERS ──────────────────────────────────────────────
 // All Airtable calls go through /api/airtable — token never touches the browser
@@ -2458,33 +2485,5 @@ document.getElementById('tech-drill-overlay').addEventListener('click', e => {
 
 loadAll();
 </script>
-
-<!-- ── EMPLOYER DRAWER ───────────────────────────────── -->
-<div class="emp-drawer-overlay" id="emp-drawer-overlay">
-  <div class="emp-drawer" id="emp-drawer">
-    <div class="emp-drawer-header" id="emp-drawer-header">
-      <button class="emp-drawer-close" id="emp-drawer-close" aria-label="Close">✕</button>
-      <div class="emp-drawer-name" id="emp-drawer-name"></div>
-      <div class="emp-drawer-meta" id="emp-drawer-meta"></div>
-    </div>
-    <div class="emp-drawer-body" id="emp-drawer-body"></div>
-  </div>
-</div>
-
-
-<!-- ── TECH DRILL-DOWN ───────────────────────────────── -->
-<div class="tech-drill-overlay" id="tech-drill-overlay">
-  <div class="tech-drill-panel">
-    <div class="tech-drill-header">
-      <button class="tech-drill-close" id="tech-drill-close">✕</button>
-      <div>
-        <div class="tech-drill-name" id="tech-drill-name"></div>
-        <div class="tech-drill-cat" id="tech-drill-cat"></div>
-      </div>
-    </div>
-    <div class="tech-drill-body" id="tech-drill-body"></div>
-  </div>
-</div>
-
 </body>
 </html>
