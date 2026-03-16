@@ -1389,6 +1389,226 @@
   }
   .emp-pt-group.open .emp-pt-group-body { display: block; }
 
+
+  /* ── SHARE BUTTON ── */
+  .share-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 0;
+    background: none;
+    border: 1px solid #3a3530;
+    border-radius: 4px;
+    color: #a89468;
+    cursor: pointer;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .share-btn:hover {
+    border-color: var(--gold-lt);
+    color: var(--gold-lt);
+    background: rgba(146,120,74,0.08);
+  }
+  .share-btn svg {
+    width: 13px; height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  /* Share popover */
+  .share-popover {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 0;
+    background: #1e1b18;
+    border: 1px solid #3a3530;
+    border-radius: 6px;
+    padding: 6px;
+    min-width: 200px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+  .share-popover.open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+  .share-popover-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #c8bfa8;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    text-decoration: none;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    letter-spacing: 0.02em;
+  }
+  .share-popover-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .share-popover-item svg {
+    width: 14px; height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .share-popover-item.copied { color: #6dbf8a; }
+  .share-popover-divider {
+    height: 1px;
+    background: #2e2a26;
+    margin: 4px 6px;
+  }
+  /* Wrap header-inner so share btn can be absolutely positioned */
+  .header-inner { position: relative; }
+
+
+  /* ── FOOTER ── */
+  .site-footer {
+    background: #1a1714;
+    border-top: 1px solid #2e2a26;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-copy {
+    font-size: 0.62rem;
+    font-variant: small-caps;
+    letter-spacing: 0.1em;
+    color: #4a4540;
+  }
+  .footer-disclosure-btn {
+    font-size: 0.62rem;
+    font-variant: small-caps;
+    letter-spacing: 0.1em;
+    color: #4a4540;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: #2e2a26;
+  }
+  .footer-disclosure-btn:hover { color: #a89468; text-decoration-color: #a89468; }
+
+  /* Disclosure slide-up panel */
+  .disclosure-overlay {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .disclosure-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .disclosure-panel {
+    background: var(--paper);
+    width: min(680px, 100vw);
+    max-height: 75vh;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 -8px 48px rgba(0,0,0,0.22);
+  }
+  .disclosure-overlay.open .disclosure-panel {
+    transform: translateY(0);
+  }
+  .disclosure-header {
+    padding: 24px 28px 18px;
+    border-bottom: 1px solid var(--rule);
+    background: white;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .disclosure-close {
+    position: absolute;
+    top: 18px; right: 20px;
+    background: none; border: none;
+    font-size: 1rem;
+    color: var(--ink-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 3px;
+    transition: color 0.15s;
+  }
+  .disclosure-close:hover { color: var(--ink); }
+  .disclosure-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .disclosure-body {
+    overflow-y: auto;
+    padding: 28px 32px 40px;
+    flex: 1;
+  }
+  .disclosure-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .disclosure-item:last-child { margin-bottom: 0; }
+  .disclosure-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gold);
+    flex-shrink: 0;
+    width: 20px;
+    margin-top: 1px;
+  }
+  .disclosure-item-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 6px;
+  }
+  .disclosure-item-body {
+    font-size: 0.83rem;
+    color: var(--ink-soft);
+    line-height: 1.65;
+  }
+
 </style>
 </head>
 <body>
@@ -1418,6 +1638,29 @@
       </div>
       <div class="contact-row" id="hdr-contact"></div>
     </div>
+
+    <!-- Share button — lower right of header -->
+    <div style="position:relative;max-width:1080px;margin:0 auto;">
+      <button class="share-btn" id="share-btn" aria-label="Share this resume">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <polyline points="16 6 12 2 8 6"/>
+          <line x1="12" y1="2" x2="12" y2="15"/>
+        </svg>
+        Share
+      </button>
+      <div class="share-popover" id="share-popover">
+        <button class="share-popover-item" id="share-copy">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy link
+        </button>
+        <div class="share-popover-divider"></div>
+        <a class="share-popover-item" id="share-email" href="#" target="_blank">
+          <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+          Email this resume
+        </a>
+      </div>
+    </div>
   </header>
 
   <!-- TABS -->
@@ -1437,7 +1680,40 @@
   <div id="collaborations" class="panel"></div>
 
 </div><!-- /page-wrap -->
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <span class="footer-copy">© 2026 Aptos Legal Operations &amp; Litigation Support LLC</span>
+    <button class="footer-disclosure-btn" id="footer-disclosure-btn">Disclosures</button>
+  </footer>
+
 </div><!-- /app -->
+
+<!-- DISCLOSURES PANEL -->
+<div class="disclosure-overlay" id="disclosure-overlay">
+  <div class="disclosure-panel">
+    <div class="disclosure-header">
+      <button class="disclosure-close" id="disclosure-close">✕</button>
+      <div class="disclosure-title">Disclosures</div>
+    </div>
+    <div class="disclosure-body">
+      <div class="disclosure-item">
+        <div class="disclosure-num">1</div>
+        <div>
+          <div class="disclosure-item-title">Legal Disclosure</div>
+          <div class="disclosure-item-body">Aptos Legal Operations &amp; Litigation Support LLC is a legal support entity contracting exclusively with licensed attorneys and does not provide legal services or advice directly to the public.</div>
+        </div>
+      </div>
+      <div class="disclosure-item">
+        <div class="disclosure-num">2</div>
+        <div>
+          <div class="disclosure-item-title">Work in Progress</div>
+          <div class="disclosure-item-body">This resume application is a Work in Progress (WIP). Content and functionality might still need some repair or updating.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- PROJECT MODAL -->
 <div class="modal-overlay" id="modal-overlay">
@@ -1607,7 +1883,7 @@ function renderExperience(employers, positions) {
 
   sorted.forEach((emp, idx) => {
     const block = document.createElement('div');
-    block.className = 'employer-block' + (idx === 0 ? ' open' : '');
+    block.className = 'employer-block';
     block.style.marginBottom = '12px';
 
     const sd = formatDate(f(emp,'Start Date'));
@@ -2669,6 +2945,66 @@ document.getElementById('tech-drill-overlay').addEventListener('click', e => {
   }
 });
 
+
+// ── SHARE BUTTON ──────────────────────────────────────────
+(function() {
+  const btn      = document.getElementById('share-btn');
+  const popover  = document.getElementById('share-popover');
+  const copyBtn  = document.getElementById('share-copy');
+  const emailBtn = document.getElementById('share-email');
+
+  // Toggle popover
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const isOpen = popover.classList.contains('open');
+    popover.classList.toggle('open', !isOpen);
+    // Update mailto href with current URL each time
+    const url  = window.location.href;
+    const subj = encodeURIComponent('A legal ops resume worth a look!');
+    const body = encodeURIComponent(
+      'Hi,\n\nI wanted to share this interactive resume with you — it\'s worth a look:\n\n' + url + '\n\nBest,'
+    );
+    emailBtn.href = `mailto:?subject=${subj}&body=${body}`;
+  });
+
+  // Copy link
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      copyBtn.classList.add('copied');
+      copyBtn.querySelector('svg').style.stroke = '#6dbf8a';
+      const orig = copyBtn.childNodes[copyBtn.childNodes.length - 1];
+      copyBtn.lastChild.textContent = ' Copied!';
+      setTimeout(() => {
+        copyBtn.classList.remove('copied');
+        copyBtn.querySelector('svg').style.stroke = '';
+        copyBtn.lastChild.textContent = ' Copy link';
+      }, 2000);
+    });
+  });
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!btn.contains(e.target) && !popover.contains(e.target)) {
+      popover.classList.remove('open');
+    }
+  });
+})();
+
+// ── DISCLOSURES PANEL ─────────────────────────────────────
+(function() {
+  const overlay  = document.getElementById('disclosure-overlay');
+  const openBtn  = document.getElementById('footer-disclosure-btn');
+  const closeBtn = document.getElementById('disclosure-close');
+
+  openBtn.addEventListener('click', () => overlay.classList.add('open'));
+  closeBtn.addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') overlay.classList.remove('open');
+  });
+})();
 
 loadAll();
 </script>
