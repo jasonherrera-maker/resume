@@ -99,7 +99,7 @@ until we add your Airtable credentials in the next step.
 
    | Key                 | Value                                                                                  |
    |---------------------|----------------------------------------------------------------------------------------|
-   | `AIRTABLE_TOKEN`    | `patdgCvcqU32w6Uj2.e1c55019f30ae9f6871b3496a835b3b0aa51d6c5d33476d3899c61203f8915bf` |
+   | `AIRTABLE_TOKEN`    | `YOUR_AIRTABLE_PERSONAL_ACCESS_TOKEN` |
    | `AIRTABLE_BASE_ID`  | `appqdiYeV7oRWhUc1`                                                                    |
 
    > Copy-paste exactly — no extra spaces.
