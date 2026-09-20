@@ -1,16 +1,20 @@
 .agent-launch {
-  position: absolute;
-  right: 96px;
-  bottom: 20px;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  align-self: center;
+  margin-left: auto;
+  margin-right: 2px;
   min-height: 36px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 13px;
-  border: 1px solid var(--gold-lt);
+  padding: 8px 14px;
+  border: 1px solid #1a1714;
   border-radius: 4px;
-  background: rgba(146, 120, 74, 0.12);
-  color: #e0cfaa;
+  background: #1a1714;
+  color: #f5f0e8;
   font-family: "DM Sans", sans-serif;
   font-size: 0.67rem;
   font-weight: 500;
@@ -20,8 +24,9 @@
 }
 
 .agent-launch:hover {
-  background: rgba(146, 120, 74, 0.2);
-  color: #fff8e9;
+  border-color: var(--gold);
+  background: #332d27;
+  color: #fff;
 }
 
 .agent-launch svg {
@@ -302,7 +307,7 @@ button.agent-evidence-chip:hover {
 
 @media (max-width: 640px) {
   .agent-launch {
-    right: 88px;
+    padding-inline: 12px;
   }
 
   .agent-header {
