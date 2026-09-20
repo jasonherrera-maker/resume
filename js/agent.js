@@ -76,7 +76,11 @@
           projectId || employerId ? "button" : "span"
         );
         chip.className = "agent-evidence-chip";
-        chip.textContent = `Evidence ${item.evidenceId}: ${item.title}`;
+        chip.textContent =
+          item.label ||
+          (item.evidenceId
+            ? `Evidence ${item.evidenceId}: ${item.title}`
+            : `${item.sourceType || "Resume"}: ${item.title}`);
 
         if (projectId) {
           chip.type = "button";
@@ -118,7 +122,7 @@
     const thinking = document.createElement("div");
     thinking.className = "agent-thinking";
     thinking.setAttribute("role", "status");
-    thinking.textContent = "Reviewing approved experience";
+    thinking.textContent = "Reviewing Jason’s resume knowledge base";
     conversation.appendChild(thinking);
     conversation.scrollTop = conversation.scrollHeight;
 
