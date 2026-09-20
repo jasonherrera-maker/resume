@@ -1,0 +1,339 @@
+.agent-launch {
+  position: absolute;
+  right: 96px;
+  bottom: 20px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px;
+  border: 1px solid var(--gold-lt);
+  border-radius: 4px;
+  background: rgba(146, 120, 74, 0.12);
+  color: #e0cfaa;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.agent-launch:hover {
+  background: rgba(146, 120, 74, 0.2);
+  color: #fff8e9;
+}
+
+.agent-launch svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.agent-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(28, 25, 23, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.agent-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.agent-panel {
+  width: min(520px, 100vw);
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: var(--paper);
+  box-shadow: -18px 0 48px rgba(28, 25, 23, 0.18);
+  transform: translateX(100%);
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.agent-overlay.open .agent-panel {
+  transform: translateX(0);
+}
+
+.agent-header {
+  position: relative;
+  margin: 0;
+  padding: 28px 60px 22px 28px;
+  border-bottom: 1px solid var(--rule);
+  background: #1a1714;
+  color: #f5f0e8;
+}
+
+.agent-eyebrow {
+  margin-bottom: 5px;
+  color: var(--gold-lt);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.agent-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.agent-intro {
+  max-width: 50ch;
+  margin-top: 8px;
+  color: #bbb2a8;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.agent-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: #bbb2a8;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.agent-close:hover {
+  color: #fff;
+}
+
+.agent-conversation {
+  overflow-y: auto;
+  padding: 24px 28px 32px;
+}
+
+.agent-starters {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.agent-starters[hidden] {
+  display: none;
+}
+
+.agent-starter {
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ink-soft);
+  text-align: left;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.agent-starter:hover {
+  border-color: var(--gold-lt);
+  background: var(--gold-bg);
+  color: var(--ink);
+}
+
+.agent-message {
+  margin-bottom: 20px;
+}
+
+.agent-message-label {
+  margin-bottom: 5px;
+  color: var(--gold);
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.agent-message-body {
+  white-space: pre-wrap;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.agent-message.user .agent-message-body {
+  padding: 12px 14px;
+  border-radius: 5px;
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.agent-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.agent-evidence-chip {
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+button.agent-evidence-chip {
+  cursor: pointer;
+}
+
+button.agent-evidence-chip:hover {
+  border-color: var(--gold-lt);
+  color: var(--gold);
+}
+
+.agent-thinking {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.agent-thinking::after {
+  content: "";
+  display: inline-block;
+  width: 1.3em;
+  animation: agent-dots 1.2s steps(4, end) infinite;
+}
+
+@keyframes agent-dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75%, 100% { content: "..."; }
+}
+
+.agent-form {
+  padding: 18px 28px 24px;
+  border-top: 1px solid var(--rule);
+  background: #fff;
+}
+
+.agent-input-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.agent-input {
+  width: 100%;
+  min-height: 76px;
+  max-height: 150px;
+  resize: vertical;
+  padding: 11px 12px;
+  border: 1px solid #d9d2c7;
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.agent-input:focus {
+  outline: 2px solid rgba(146, 120, 74, 0.25);
+  outline-offset: 1px;
+  border-color: var(--gold);
+}
+
+.agent-submit {
+  min-width: 74px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #1a1714;
+  border-radius: 4px;
+  background: #1a1714;
+  color: #f8f3e9;
+  font-family: "DM Sans", sans-serif;
+  font-size: 0.73rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.agent-submit:hover {
+  background: #332d27;
+}
+
+.agent-submit:disabled,
+.agent-input:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.agent-fine-print {
+  margin-top: 8px;
+  color: var(--ink-muted);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .agent-launch {
+    right: 88px;
+  }
+
+  .agent-header {
+    padding: 24px 60px 20px 20px;
+  }
+
+  .agent-conversation {
+    padding: 20px 18px 28px;
+  }
+
+  .agent-form {
+    padding: 14px 18px 18px;
+  }
+
+  .agent-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-submit {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-overlay,
+  .agent-panel {
+    transition: none;
+  }
+
+  .agent-thinking::after {
+    animation: none;
+    content: "...";
+  }
+}

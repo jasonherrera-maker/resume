@@ -6,6 +6,7 @@
 <title>Jason Herrera — Senior Legal Operations & Program Manager</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/agent.css">
 <style>
   :root {
     --ink:       #1c1917;
@@ -1641,8 +1642,15 @@
       <div class="contact-row" id="hdr-contact"></div>
     </div>
 
-    <!-- Share button — lower right of header -->
+    <!-- Resume agent and sharing controls -->
     <div style="position:relative;max-width:1080px;margin:0 auto;">
+      <button class="agent-launch" id="agent-launch" type="button" aria-controls="agent-panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a4 4 0 0 1-1-2.6V7a4 4 0 0 1 4-4h11a4 4 0 0 1 4 4z"/>
+          <path d="M7 8h9M7 12h6"/>
+        </svg>
+        Ask about Jason
+      </button>
       <button class="share-btn" id="share-btn" aria-label="Share this resume">
         <svg viewBox="0 0 24 24">
           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
@@ -1690,6 +1698,33 @@
   </footer>
 
 </div><!-- /app -->
+
+<!-- RESUME AGENT -->
+<div class="agent-overlay" id="agent-overlay" aria-hidden="true">
+  <aside class="agent-panel" id="agent-panel" role="dialog" aria-modal="true" aria-labelledby="agent-title">
+    <header class="agent-header">
+      <div class="agent-eyebrow">Grounded in approved resume evidence</div>
+      <h2 class="agent-title" id="agent-title">Ask about Jason’s experience</h2>
+      <p class="agent-intro">Explore his litigation, eDiscovery, legal operations, systems, and cross-functional work. Answers are synthesized from verified, public resume narratives.</p>
+      <button class="agent-close" id="agent-close" type="button" aria-label="Close resume agent">✕</button>
+    </header>
+    <div class="agent-conversation" id="agent-conversation" aria-live="polite">
+      <div class="agent-starters" id="agent-starters">
+        <button class="agent-starter" type="button" data-question="Walk me through Jason’s experience across the EDRM lifecycle.">Walk me through Jason’s experience across the EDRM lifecycle.</button>
+        <button class="agent-starter" type="button" data-question="How has Jason transformed legal intake and matter-management workflows?">How has Jason transformed legal intake and matter-management workflows?</button>
+        <button class="agent-starter" type="button" data-question="Where has Jason combined litigation judgment with systems design?">Where has Jason combined litigation judgment with systems design?</button>
+      </div>
+    </div>
+    <form class="agent-form" id="agent-form">
+      <label class="agent-input-label" for="agent-input">Your question</label>
+      <div class="agent-input-row">
+        <textarea class="agent-input" id="agent-input" maxlength="600" placeholder="Ask about a skill, project, tool, or stage of the litigation lifecycle…" required></textarea>
+        <button class="agent-submit" id="agent-submit" type="submit">Ask</button>
+      </div>
+      <p class="agent-fine-print">The agent answers from approved resume evidence and may say when the available record is incomplete.</p>
+    </form>
+  </aside>
+</div>
 
 <!-- DISCLOSURES PANEL -->
 <div class="disclosure-overlay" id="disclosure-overlay">
@@ -1784,6 +1819,17 @@ function f(rec, field) {
   return (rec.fields && rec.fields[field]) || '';
 }
 
+function recordMatchesLink(record, value, labelFields) {
+  const needle = String(value || '').trim();
+  if (!needle) return false;
+  if (record.id === needle) return true;
+  return labelFields.some(field => String(f(record, field) || '').trim() === needle);
+}
+
+function resolveLinkedRecord(records, value, labelFields) {
+  return records.find(record => recordMatchesLink(record, value, labelFields));
+}
+
 function catClass(cat) {
   const map = {
     'Systems & Technology':           'sys',
@@ -1803,9 +1849,21 @@ function catClass(cat) {
 }
 
 function formatDate(d) {
-  if (!d) return 'Present';
+  if (!d) return '';
   const dt = new Date(d);
   return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function formatEmployerDateRange(emp) {
+  const employer = String(f(emp, 'Employer') || '').toLowerCase();
+  if (employer.includes('protection & advocacy') || employer.includes('king hall civil rights clinic')) {
+    return '1999–2000';
+  }
+  const start = formatDate(f(emp, 'Start Date'));
+  const end = formatDate(f(emp, 'End Date'));
+  if (start && end) return `${start} – ${end}`;
+  if (start) return `${start} – Present`;
+  return end || '';
 }
 
 // ── RENDER HEADER ────────────────────────────────────────
@@ -1888,8 +1946,7 @@ function renderExperience(employers, positions) {
     block.className = 'employer-block';
     block.style.marginBottom = '12px';
 
-    const sd = formatDate(f(emp,'Start Date'));
-    const ed = formatDate(f(emp,'End Date'));
+    const dateRange = formatEmployerDateRange(emp);
     const industry = f(emp,'Industry');
 
     // ── HEADER (clickable toggle) ──
@@ -1899,7 +1956,7 @@ function renderExperience(employers, positions) {
       <div class="employer-header-left">
         <div class="employer-meta">
           <div class="employer-name">${f(emp,'Employer')}</div>
-          <div class="employer-dates">${sd} – ${ed}</div>
+          ${dateRange ? `<div class="employer-dates">${dateRange}</div>` : ''}
           ${industry ? `<div class="employer-industry">${industry}</div>` : ''}
         </div>
       </div>
@@ -2040,10 +2097,10 @@ function openProjectModal(proj) {
   let empChipsHtml = '';
   if (empLinks.length && allEmployers.length) {
     empChipsHtml = empLinks.map(eid => {
-      const emp = allEmployers.find(e => e.id === eid);
+      const emp = resolveLinkedRecord(allEmployers, eid, ['Employer', 'Name']);
       if (!emp) return '';
       const name = f(emp,'Employer') || f(emp,'Name') || '';
-      return `<button class="project-type-badge emp-modal-chip" data-emp-id="${eid}" style="background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-lt);cursor:pointer">${name}</button>`;
+      return `<button class="project-type-badge emp-modal-chip" data-emp-id="${emp.id}" style="background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-lt);cursor:pointer">${name}</button>`;
     }).join('');
   }
 
@@ -2075,17 +2132,17 @@ function openProjectModal(proj) {
       </div>`;
   }
 
-  // ── Skills — Granular (linked Skill Sets) ──
-  const skillLinks = proj.fields['Skill Sets'] || [];
+  // ── Skills — Granular ──
+  const skillLinks = proj.fields['Skills'] || proj.fields['Skill Sets'] || [];
   let skillChipsHtml = '';
   if (skillLinks.length && allSkills.length) {
     const chips = skillLinks.map(sid => {
-      const sk = allSkills.find(s => s.id === sid);
+      const sk = resolveLinkedRecord(allSkills, sid, ['Skill']);
       if (!sk) return '';
       const scat   = f(sk,'Skill Type');
       const bgVar  = `var(--cat${catIndex(scat)})`;
       const fgVar  = `var(--cat${catIndex(scat)}d)`;
-      return `<button class="skill-chip-link" data-skill-id="${sid}" style="background:${bgVar};color:${fgVar}"><span class="sc-dot" style="background:${fgVar}"></span>${f(sk,'Skill')}</button>`;
+      return `<button class="skill-chip-link" data-skill-id="${sk.id}" style="background:${bgVar};color:${fgVar}"><span class="sc-dot" style="background:${fgVar}"></span>${f(sk,'Skill')}</button>`;
     }).join('');
     if (chips) {
       skillChipsHtml = `
@@ -2101,10 +2158,10 @@ function openProjectModal(proj) {
   let techChipsHtml = '';
   if (techLinks.length && allTechnologies.length) {
     const chips = techLinks.map(tid => {
-      const tech = allTechnologies.find(t => t.id === tid);
+      const tech = resolveLinkedRecord(allTechnologies, tid, ['Technology', 'Tech (Name)', 'Name']);
       if (!tech) return '';
       const name = f(tech,'Technology') || f(tech,'Tech (Name)') || f(tech,'Name') || '';
-      return `<button class="project-type-badge modal-tech-chip" data-tech-id="${tid}" style="background:var(--cream);color:var(--ink-soft);border:1px solid var(--rule);cursor:pointer">${name}</button>`;
+      return `<button class="project-type-badge modal-tech-chip" data-tech-id="${tech.id}" style="background:var(--cream);color:var(--ink-soft);border:1px solid var(--rule);cursor:pointer">${name}</button>`;
     }).join('');
     if (chips) {
       techChipsHtml = `
@@ -2218,7 +2275,9 @@ function openSkillDrillDown(skill) {
   // ── Body: linked projects ──
   bodyEl.innerHTML = '';
   const linkedProjIds = skill.fields['Projects'] || [];
-  const linkedProjs   = allProjects.filter(p => linkedProjIds.includes(p.id));
+  const linkedProjs = allProjects.filter(p =>
+    linkedProjIds.some(value => recordMatchesLink(p, value, ['Project']))
+  );
 
   if (linkedProjs.length) {
     const sec = document.createElement('div');
@@ -2250,11 +2309,13 @@ function openSkillDrillDown(skill) {
   }
 
   // ── Body: linked employers (via projects → Employers linked field) ──
-  const empIdSet = new Set();
+  const empLinks = [];
   linkedProjs.forEach(p => {
-    (p.fields['Employers'] || p.fields['Employer'] || []).forEach(id => empIdSet.add(id));
+    (p.fields['Employers'] || p.fields['Employer'] || []).forEach(value => empLinks.push(value));
   });
-  const linkedEmps = allEmployers.filter(e => empIdSet.has(e.id));
+  const linkedEmps = allEmployers.filter(e =>
+    empLinks.some(value => recordMatchesLink(e, value, ['Employer', 'Name']))
+  );
 
   if (linkedEmps.length) {
     const sec2 = document.createElement('div');
@@ -2511,7 +2572,7 @@ function renderCollaborations(collabs) {
 
       const bd = document.createElement('div');
       bd.style.flex = '1';
-      const where = f(c,'Where');
+      const where = f(c,'Environment');
       bd.innerHTML = `
         <div class="collab-name">${f(c,'Partner Team')}</div>
         ${f(c,'Representative Collaboration') ? `<div class="collab-rep">${f(c,'Representative Collaboration')}</div>` : ''}
@@ -2522,7 +2583,7 @@ function renderCollaborations(collabs) {
       card.addEventListener('click', () => {
         const lookupVals = card.dataset.empLookup ? card.dataset.empLookup.split('|') : [];
         const emp = allEmployers.find(e =>
-          lookupVals.some(v => v.trim() === f(e,'Employer').trim())
+          lookupVals.some(value => recordMatchesLink(e, value, ['Employer', 'Name']))
         );
         if (emp) openEmployerDrawer(emp);
       });
@@ -2628,14 +2689,13 @@ function openEmployerDrawer(emp) {
 
   const empId    = emp.id;
   const empName  = f(emp,'Employer');
-  const sd       = formatDate(f(emp,'Start Date'));
-  const ed       = formatDate(f(emp,'End Date'));
+  const dateRange = formatEmployerDateRange(emp);
   const industry = f(emp,'Industry');
 
   // ── Header ──
   nameEl.textContent = empName;
   metaEl.innerHTML = `
-    <div class="emp-drawer-dates">${sd} – ${ed}</div>
+    ${dateRange ? `<div class="emp-drawer-dates">${dateRange}</div>` : ''}
     ${industry ? `<div class="emp-drawer-industry">${industry}</div>` : ''}
   `;
 
@@ -2741,7 +2801,7 @@ function openEmployerDrawer(emp) {
   }
   if (!empSkills.length) {
     const skillIds = new Set();
-    empProjects.forEach(p => (p.fields['Skill Sets'] || []).forEach(id => skillIds.add(id)));
+    empProjects.forEach(p => (p.fields['Skills'] || p.fields['Skill Sets'] || []).forEach(id => skillIds.add(id)));
     empSkills = allSkills.filter(s => skillIds.has(s.id));
   }
 
@@ -2856,7 +2916,9 @@ function openTechDrillDown(tech) {
 
   // ── Projects that use this tech ──
   const techProjects = allProjects.filter(p =>
-    (p.fields['Technologies'] || []).includes(tech.id)
+    (p.fields['Technologies'] || []).some(value =>
+      recordMatchesLink(tech, value, ['Technology', 'Tech (Name)', 'Name'])
+    )
   );
 
   if (techProjects.length) {
@@ -3010,5 +3072,6 @@ document.getElementById('tech-drill-overlay').addEventListener('click', e => {
 
 loadAll();
 </script>
+<script src="/js/agent.js" defer></script>
 </body>
 </html>
