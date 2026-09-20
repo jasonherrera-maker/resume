@@ -1830,6 +1830,25 @@ function resolveLinkedRecord(records, value, labelFields) {
   return records.find(record => recordMatchesLink(record, value, labelFields));
 }
 
+function preparePublicEmployers(employers) {
+  return employers
+    .filter(emp => String(f(emp, 'Employer')).trim().toLowerCase() !== 'block')
+    .map(emp => {
+      const employerName = String(f(emp, 'Employer'));
+      if (!employerName.toLowerCase().includes('king hall civil rights clinic')) {
+        return emp;
+      }
+      return {
+        ...emp,
+        fields: {
+          ...emp.fields,
+          Employer: 'UC Davis, King Hall Civil Rights Clinic',
+          Industry: '',
+        },
+      };
+    });
+}
+
 function catClass(cat) {
   const map = {
     'Systems & Technology':           'sys',
@@ -2647,16 +2666,18 @@ async function loadAll() {
       fetchAll('Collaborations'),
     ]);
 
+    const publicEmployers = preparePublicEmployers(employers);
+
     // Store globals for drill-down cross-referencing
     allProjects     = projects;
     allSkills       = skills;
-    allEmployers    = employers;
+    allEmployers    = publicEmployers;
     allTechnologies = technologies;
     allPositions    = positions;
     allCollabs      = collabs;
 
     renderHeader(headers);
-    renderExperience(employers, positions);
+    renderExperience(publicEmployers, positions);
     renderProjects(projects);
     renderSkills(skills);
     renderTechnologies(technologies);
