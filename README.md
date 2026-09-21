@@ -1,9 +1,10 @@
 # Jason Herrera — Interactive Resume
 ## Deployment Guide (~15 minutes)
 
-Your resume is a static HTML file that talks to Airtable through a secure
-serverless proxy. The Airtable token never appears in your browser or page
-source — it lives only in Netlify's encrypted environment variables.
+Your resume is a static HTML application that talks to Airtable and the
+Perplexity Agent API through Netlify Functions. Tokens never appear in the
+browser or page source; they live only in Netlify's encrypted environment
+variables.
 
 ---
 
@@ -11,8 +12,11 @@ source — it lives only in Netlify's encrypted environment variables.
 
 ```
 index.html                      ← the resume itself
+css/agent.css                   ← resume-agent interface styles
+js/agent.js                     ← resume-agent interface behavior
 netlify.toml                    ← tells Netlify how to route /api calls
-netlify/functions/airtable.js   ← the secure proxy (never touches the browser)
+netlify/functions/airtable.js   ← field-allowlisted public data proxy
+netlify/functions/ask.js        ← grounded resume retrieval + answer generation
 README.md                       ← this file
 ```
 
@@ -92,15 +96,17 @@ until we add your Airtable credentials in the next step.
 
 ---
 
-## Step 6 — Add your Airtable credentials
+## Step 6 — Add server-side credentials
 
 1. In Netlify → **Site configuration** (left sidebar) → **Environment variables**
-2. Click **Add a variable** and add these two exactly as shown:
+2. Click **Add a variable** and add these variables:
 
-   | Key                 | Value                                                                                  |
-   |---------------------|----------------------------------------------------------------------------------------|
-   | `AIRTABLE_TOKEN`    | `YOUR_AIRTABLE_PERSONAL_ACCESS_TOKEN` |
-   | `AIRTABLE_BASE_ID`  | `appqdiYeV7oRWhUc1`                                                                    |
+   | Key                  | Value                                      |
+   |----------------------|--------------------------------------------|
+   | `AIRTABLE_TOKEN`     | Your Airtable personal access token        |
+   | `AIRTABLE_BASE_ID`   | Your Airtable base ID                      |
+   | `PERPLEXITY_API_KEY` | Your Perplexity API key                    |
+   | `PERPLEXITY_MODEL`   | Optional model override                    |
 
    > Copy-paste exactly — no extra spaces.
 
@@ -171,10 +177,17 @@ GitHub's web UI sometimes drops nested folders. Fix:
 ```
 Browser → /api/airtable?table=Projects
               ↓
-       Netlify Function (airtable.js)
-       reads AIRTABLE_TOKEN from encrypted env
+       airtable.js requests only the approved fields for that table
               ↓
-       Airtable API  ← token only travels server-side
+       Airtable API
+
+Browser → /api/ask
               ↓
-       JSON returned to browser (data only, never the token)
+       ask.js retrieves only Approved + Verified public narratives
+              ↓
+       Perplexity Agent API synthesizes a grounded answer
 ```
+
+The agent does not receive Airtable internal notes or internal narrative
+fields. It does not have open-web tools, and it is instructed to acknowledge
+when the approved resume evidence does not support an answer.
