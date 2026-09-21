@@ -174,15 +174,22 @@
     gap: 0;
     border-bottom: 1px solid var(--rule);
     margin-bottom: 40px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    overflow: visible;
     position: sticky;
     top: 0;
     background: var(--paper);
     z-index: 100;
     box-shadow: 0 1px 0 var(--rule);
   }
-  .tab-bar::-webkit-scrollbar { display: none; }
+
+  .tab-scroll {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab-scroll::-webkit-scrollbar { display: none; }
 
   .tab-btn {
     padding: 16px 22px 14px;
@@ -1392,6 +1399,12 @@
 
 
   /* ── SHARE BUTTON ── */
+  .share-control {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
   .share-btn {
     position: absolute;
     bottom: 20px;
@@ -1484,6 +1497,18 @@
   }
   /* Wrap header-inner so share btn can be absolutely positioned */
   .header-inner { position: relative; }
+
+  @media (max-width: 640px) {
+    .share-control {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .share-btn {
+      position: static;
+    }
+  }
 
 
   /* ── FOOTER ── */
@@ -1643,7 +1668,7 @@
     </div>
 
     <!-- Sharing control -->
-    <div style="position:relative;max-width:1080px;margin:0 auto;">
+    <div class="share-control">
       <button class="share-btn" id="share-btn" aria-label="Share this resume">
         <svg viewBox="0 0 24 24">
           <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
@@ -1668,11 +1693,13 @@
 
   <!-- TABS -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="experience">Experience</button>
-    <button class="tab-btn" data-tab="projects">Projects</button>
-    <button class="tab-btn" data-tab="skills">Skills</button>
-    <button class="tab-btn" data-tab="technologies">Technologies</button>
-    <button class="tab-btn" data-tab="collaborations">Collaborations</button>
+    <div class="tab-scroll">
+      <button class="tab-btn active" data-tab="experience">Experience</button>
+      <button class="tab-btn" data-tab="projects">Projects</button>
+      <button class="tab-btn" data-tab="skills">Skills</button>
+      <button class="tab-btn" data-tab="technologies">Technologies</button>
+      <button class="tab-btn" data-tab="collaborations">Collaborations</button>
+    </div>
     <button class="agent-launch" id="agent-launch" type="button" aria-controls="agent-panel">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a4 4 0 0 1-1-2.6V7a4 4 0 0 1 4-4h11a4 4 0 0 1 4 4z"/>
