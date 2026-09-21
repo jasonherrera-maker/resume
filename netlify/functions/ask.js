@@ -1,6 +1,27 @@
 const PERPLEXITY_ENDPOINT = "https://api.perplexity.ai/v1/agent";
 const MODEL = process.env.PERPLEXITY_MODEL || "openai/gpt-5.6-sol";
 
+const EMPLOYMENT_TIMELINE = Object.freeze({
+  id: "employment-timeline",
+  type: "Timeline",
+  title: "Employment timeline",
+  content: [
+    "Weil, Gotshal & Manges LLP: 2004–2008, approximately 4.5 years.",
+    "Boies Schiller Flexner LLP: 2008–2009, approximately 1 year.",
+    "The Business Litigation Group PC: 2010–2012, approximately 2 years.",
+    "Simpson Thacher & Bartlett LLP: 2012–2017, approximately 4.5 years.",
+    "Airbnb, Inc.: 2017–2021, approximately 4.5 years.",
+    "LinkedIn Corp.: 2021–2026, approximately 4.5 years.",
+    "Aptos Legal Operations & Litigation Support LLC: February 2026–present.",
+  ].join("\n"),
+  evidenceId: null,
+  confidence: "High",
+  verification: "User confirmed",
+  publicStatus: "",
+  employerIds: [],
+  projectIds: [],
+});
+
 const SOURCE_TABLES = Object.freeze([
   {
     id: "tblY2Q7Q6lbaZ1ZLM",
@@ -433,7 +454,7 @@ function selectEvidence(question, corpus) {
     if (selected.length >= 14) break;
   }
 
-  return selected;
+  return [EMPLOYMENT_TIMELINE, ...selected].slice(0, 14);
 }
 
 function evidenceForPrompt(sources) {
@@ -495,6 +516,7 @@ async function callPerplexity(apiKey, question, history, sources, rewrite) {
     "You are the conversational guide for Jason Herrera's interactive resume and portfolio proof of concept.",
     "Answer from the supplied resume corpus. It may contain structured resume records, detailed narratives, and long-form working summaries.",
     "Synthesize across sources and make reasonable, conservative inferences when several records jointly support an answer. Label a material inference as an inference.",
+    "Produce one unified response. Consolidate overlapping sources instead of repeating the same experience in multiple formulations.",
     "Do not invent an employer, title, tool, matter, responsibility, date, metric, or outcome that is absent from the supplied corpus.",
     "Do not default to saying an experience cannot be found. First discuss directly supported experience, then closely adjacent or transferable experience, and state the narrow remaining uncertainty only if it matters.",
     "When sources conflict, prefer a verified narrative over a structured summary, use the narrower claim, and avoid repeating a superseded detail.",
@@ -581,10 +603,27 @@ function isSameOrigin(event) {
 }
 
 function publicEvidence(sources) {
-  return sources.slice(0, 8).map((source) => ({
-    label: source.evidenceId
-      ? `Evidence ${source.evidenceId}: ${source.title}`
-      : `${source.type}: ${source.title}`,
+  const narratives = sources.filter((source) => source.type === "Narrative");
+  const linkedProjectIds = new Set(
+    narratives.flatMap((source) => source.projectIds || [])
+  );
+  const seenTitles = new Set();
+
+  return sources
+    .filter(
+      (source) =>
+        source.type === "Narrative" ||
+        (source.type === "Project" && !linkedProjectIds.has(source.id))
+    )
+    .filter((source) => {
+      const title = normalize(source.title);
+      if (!title || seenTitles.has(title)) return false;
+      seenTitles.add(title);
+      return true;
+    })
+    .slice(0, 6)
+    .map((source) => ({
+    label: source.title,
     evidenceId: source.evidenceId,
     title: source.title,
     sourceType: source.type,
@@ -691,4 +730,5 @@ exports._test = {
   scoreSource,
   selectEvidence,
   evidenceForPrompt,
+  publicEvidence,
 };

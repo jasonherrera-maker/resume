@@ -11,6 +11,15 @@
   let history = [];
   let previousFocus = null;
 
+  function detailOverlayOpen() {
+    return [
+      "modal-overlay",
+      "skill-drill-overlay",
+      "emp-drawer-overlay",
+      "tech-drill-overlay",
+    ].some((id) => document.getElementById(id)?.classList.contains("open"));
+  }
+
   function openAgent() {
     previousFocus = document.activeElement;
     overlay.classList.add("open");
@@ -22,6 +31,7 @@
   function closeAgent() {
     overlay.classList.remove("open");
     overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("agent-detail-open");
     document.body.style.overflow = "";
     if (previousFocus && typeof previousFocus.focus === "function") {
       previousFocus.focus();
@@ -29,7 +39,11 @@
   }
 
   function keepFocusInside(event) {
-    if (event.key !== "Tab" || !overlay.classList.contains("open")) return;
+    if (
+      event.key !== "Tab" ||
+      !overlay.classList.contains("open") ||
+      detailOverlayOpen()
+    ) return;
     const focusable = [...panel.querySelectorAll(
       "button:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex='-1'])"
     )].filter((element) => element.offsetParent !== null);
@@ -76,11 +90,7 @@
           projectId || employerId ? "button" : "span"
         );
         chip.className = "agent-evidence-chip";
-        chip.textContent =
-          item.label ||
-          (item.evidenceId
-            ? `Evidence ${item.evidenceId}: ${item.title}`
-            : `${item.sourceType || "Resume"}: ${item.title}`);
+        chip.textContent = item.label || item.title;
 
         if (projectId) {
           chip.type = "button";
@@ -88,7 +98,7 @@
           chip.addEventListener("click", () => {
             const project = allProjects.find((entry) => entry.id === projectId);
             if (!project) return;
-            closeAgent();
+            document.body.classList.add("agent-detail-open");
             openProjectModal(project);
           });
         } else if (employerId) {
@@ -99,7 +109,7 @@
               (entry) => entry.id === employerId
             );
             if (!employer) return;
-            closeAgent();
+            document.body.classList.add("agent-detail-open");
             openEmployerDrawer(employer);
           });
         }
@@ -167,6 +177,7 @@
   panel.addEventListener("click", (event) => event.stopPropagation());
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && overlay.classList.contains("open")) {
+      if (detailOverlayOpen()) return;
       closeAgent();
       return;
     }
@@ -183,5 +194,12 @@
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     ask(input.value.trim());
+  });
+
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
   });
 })();

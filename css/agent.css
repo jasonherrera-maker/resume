@@ -56,6 +56,16 @@
   pointer-events: auto;
 }
 
+body.agent-detail-open .modal-overlay,
+body.agent-detail-open .emp-drawer-overlay {
+  z-index: 1300;
+}
+
+body.agent-detail-open .skill-drill-overlay,
+body.agent-detail-open .tech-drill-overlay {
+  z-index: 1400;
+}
+
 .agent-panel {
   width: min(520px, 100vw);
   height: 100dvh;
